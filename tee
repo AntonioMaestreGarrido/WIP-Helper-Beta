@@ -1,0 +1,450 @@
+var express = require("express");
+var app = express();
+const axios = require("axios").default;
+const fetch = require('node-fetch');
+
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
+const { Builder, By, until, Key } = require("selenium-webdriver");
+//const chrome = require("selenium-webdriver/chrome");
+const firefox = require("selenium-webdriver/firefox");
+const cors = require("cors");
+const newID = require("uniqid");
+const { json } = require("express");
+const { createConnection, getConnection } = require("./lowdb");
+const req = require("express/lib/request");
+
+//const { testChart } = require("../../Flow-Rate-main/grafica");
+
+createConnection();
+
+let date = new Date();
+date.toLocaleTimeString;
+
+const port = "3000";
+app.listen(port, "0.0.0.0", () => {
+  console.log(`Flow Ratio app listening on port ${port}`);
+});
+// ************************************************** Middlewares
+app.use(express.json());
+//app.use(cors({ origin: "*" }));
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method"
+  );
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  res.header("Allow", "GET, POST, OPTIONS, PUT, DELETE");
+
+  next();
+});
+//-----------------------------------------rutas
+
+app.get("/", async function (req, res) {
+  console.log("inicio peticion", new Date().toLocaleTimeString());
+  let a = await main();
+  //console.log("inside app.get", a);
+  console.log("fin peticion", new Date().toLocaleTimeString());
+  // a.then((data)=>(res.send(data)))
+  //res.send("El ritmo de stow es "+ a);
+  res.json(a);
+});
+app.get("/getStowersData", async function (req, res) {
+  let data = await getStowerInfo();
+  res.send(data);
+});
+app.get("/getInductersData", async function (req, res) {
+  let data = await getInductersInfo();
+  res.send(data);
+});
+app.get("/getData", async function (req, res) {
+  let data = getConnection().get("data");
+  res.send(data);
+});
+app.get("/wipData", async function (req, res) {
+  let data = await getApiWip()
+  res.send(data);
+});
+
+app.get("/test", async function (req, res) {
+  //console.log( )
+  //console.log("res",data);
+  try {
+    res.send(await getYard());
+    
+  } catch (error) {
+    console.log(error)
+    
+  }
+});
+// app.post("/testpost",cors(), async function (req, res) {
+
+//   try {
+  
+//   console.log(" BODY", req.body);
+//   let peti=req.body.body
+//   console.log(peti)
+//   console.log(await getSSCdata(peti))
+//   let data =await getSSCdata(peti)
+  
+//   res.send(data);
+    
+//   } catch (error) {
+//     console.log(error)
+//   }
+    
+// });
+app.post("/send", async function (req, res) {
+  console.log(" BODY", req.body);
+  const obj = req.body;
+  obj.ID = newID();
+
+  // if (app.lastMinute !== obj.minuto || app.lastHora !== obj.hora) {
+  //   setBaseUpToDate(obj);
+  // }
+
+  app.lastMinute = obj.minuto;
+  app.lastHora = obj.hora;
+
+  getConnection().get("data").push(obj).write();
+  res.send("done");
+});
+
+/////////event test
+getCookie()
+///////////////+
+
+async function main(){
+  
+  //console.log(dwel)++
+  
+  const receive=await getSSCdata('{"resourcePath":"/ivs/getPackageMetric","httpMethod":"post","processName":"induct","requestBody":{"nodeId":"DQA2","filters":{"Cycle":["CYCLE_1"],"":[]},"groupBy":"Node","metricList":["CURRENT_CYCLE_RECEIVED","OTHER_CYCLE_RECEIVED","PENDING_DEPART_FROM_UPSTREAM","PENDING_DEPART_FROM_UPSTREAM_UNPLANNED","IN_TRANSIT_FROM_UPSTREAM","IN_TRANSIT_FROM_UPSTREAM_UNPLANNED","PENDING_INDUCT","PENDING_INDUCT_UNPLANNED","PENDING_RE_INDUCT","PENDING_RE_INDUCT_UNPLANNED","INDUCTED_AT_STATION","PLANNED_MANIFESTED","SIDELINE"]}}')
+ ATs=receive.groupedPackageMetrics.INDUCTED_AT_STATION.DQA2
+ const stowRate= await getAPIstow()
+ const inductRate=await getAPIinduct()
+ 
+
+
+return { "stowRate":stowRate.value, ATs, "inductRate":inductRate.value };
+
+}
+
+
+function dummiData() {
+  if (!dummiData.a) {
+    dummiData.a = 1200;
+    dummiData.b = 200;
+    dummiData.c = 1500;
+  }
+  dummiData.a++;
+  dummiData.b = dummiData.b + 5;
+  dummiData.c++;
+  let stowRate = dummiData.a;
+  let ATs = dummiData.b;
+  let inductRate = dummiData.c;
+  let ob = { stowRate: stowRate, ATs: ATs, inductRate: inductRate };
+
+  return ob;
+}
+
+async function getStowerInfo() {
+  const service = new firefox.ServiceBuilder("./driver");
+  let options = new firefox.Options();
+
+  options.getAcceptInsecureCerts(true);
+  options.headless(true);
+  let driver = await new Builder()
+    .forBrowser("firefox")
+
+    .setFirefoxOptions(options)
+
+    .build();
+  await driver.manage().setTimeouts({ implicit: 10000 });
+
+  await driver.get(
+    "https://logistics.amazon.co.uk/station/dashboard/associatesort"
+  );
+  //await driver.switchTo().frame(0);
+  await driver.wait(until.ableToSwitchToFrame(0));
+  await driver.findElement(By.id("control-group-6")).sendKeys(Key.SPACE);
+  await driver
+    .findElement(By.css("[data-cy='associateStatusFieldsetOption']"))
+    .sendKeys(Key.SPACE);
+
+  const tabla = await driver.findElement(By.css("table"));
+  let a = await tabla.getText();
+  console.log("tabla");
+  console.log(a);
+  ////se  saca la tabla a Array
+  const arrayFromTable = [];
+  let filas;
+  for (let i = 0; i < 100; i++) {
+    filas = await tabla.findElements(By.css("thead tr,tbody tr"));
+    console.log(i, filas.length);
+    if (filas.length > 1) {
+      break;
+    }
+  }
+
+  for (const fila of filas) {
+    let tempFila = [];
+    let temp = await fila.findElements(By.css("td , th"));
+    console.log(temp.length);
+    for (const celda of temp) {
+      let te = await celda.getText();
+      tempFila.push(te);
+    }
+    arrayFromTable.push(tempFila);
+  }
+
+  arrayFromTable.forEach((ele) => {
+    console.log(
+      `El asociado ${ele[0]} tiene un ritmo de Stow de ${ele[1]} paquetes * hora`
+    );
+  });
+
+  await driver.quit();
+  return arrayFromTable;
+}
+//https://badgephotos.amazon.com/?uid=lloaleja
+async function getInductersInfo() {
+  const service = new firefox.ServiceBuilder("./driver");
+  let options = new firefox.Options();
+  options.getAcceptInsecureCerts(true);
+  options.headless(true);
+  let driver = await new Builder()
+    .forBrowser("firefox")
+    .setFirefoxOptions(options)
+    .build();
+  await driver.manage().setTimeouts({ implicit: 10000 });
+  await driver.get(
+    "https://logistics.amazon.co.uk/station/dashboard/associateinduct"
+  );
+  await driver.switchTo().frame(0);
+  //div.css-1ksgwbn:nth-child(2) > label:nth-child(1) > input:nth-child(1)
+  await driver.findElement(By.css("input[name='state']")).sendKeys(Key.SPACE);
+
+  const tabla = await driver.findElement(By.css("table"));
+  let a = await tabla.getText();
+  //console.log(a);
+  ////se  saca la tabla a Array
+  const arrayFromTable = [];
+  let filas = await tabla.findElements(By.css("tr"));
+
+  for (const fila of filas) {
+    let tempFila = [];
+    let temp = await fila.findElements(By.css("th ,td"));
+    for (const celda of temp) {
+      let te = await celda.getText();
+      tempFila.push(te);
+    }
+    arrayFromTable.push(tempFila);
+  }
+
+  arrayFromTable.forEach((ele) => {
+    console.log(
+      `El asociado ${ele[0]} tiene un ritmo de induccion de ${ele[1]} paquetes * hora`
+    );
+  });
+
+  await driver.quit();
+  return arrayFromTable;
+}
+
+
+
+
+//testMID();
+async function getSSCdata(petition) {
+  if(AMAZONCOOKIE===undefined){
+    AMAZONCOOKIE=await getCookie()
+  }
+  //console.log(AMAZONCOOKIE)
+ //petition =' {"resourcePath":"/ivs/getNodeLineHaulList","httpMethod":"post","processName":"induct","requestBody":{"nodeId":"DQA2","groupBy":""}}'
+  
+  let AMAZONCOOKIE2="session-id=258-4989459-4316849; session-id-time=2082787201l; ubid-acbuk=257-3562508-2927626; csm-hit=tb:s-6F88CY1ATY20PZVWC3BB|1653533326489&t:1653533326645&adb:adblk_no; amzn_sso_rfp=48375470219e43d1; amzn_sso_token=eyJ4NXUiOiJodHRwOlwvXC9zZW50cnktcGtpLmFtYXpvbi5jb21cL3B1YmxpY2tleVwvOTQ3MDU0NCIsInR5cCI6IkpXUyIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiJhbW1hZXN0ckBBTlQuQU1BWk9OLkNPTSIsImF1ZCI6WyJsb2dpc3RpY3MuYW1hem9uLmNvLnVrOjQ0MyJdLCJhY3IiOiJrZXJiZXJvcyIsImFtciI6WyJwd2QiXSwiaXNzIjoic2VudHJ5LmFtYXpvbi5jb20iLCJleHAiOjE2NTM2MTgxMDUsImlhdCI6MTY1MzU4MjEwNSwibm9uY2UiOiJiYzU4YzVkMzZiNDFkZWRlMTZiOTRhMDk2MDQ5MTQzMDNiNWM1YjUyZjdhMjBlNjRmY2MwNjNlZDA0NzYxODY0In0.Hjcxnh8pVxw-ysh1xwfe3qWAFG5T1fjn-TPoOe5b0jSmObacN2PVBzElmMjovccHx7JOEyNWkJSjrIUyd_oa3Kcxp6PKhezVpqYD510X_mD3U6fyXZ1BWZUCp3IH_IVuhHezDXLwsxl5BDu8AAhXtdt0_UkoiZ09GEIK1b88Rx7kWfgBnLeHc9swnGMvnoQtPQBlAkGP5XB0JkOeOTqHuwZTlXCggKMS3IEhAz5iESKTpL-0nTdnJFl7ebr2begUVtUBpmAF2H3E2wDSu0fh_UrVpsmGBKi5ZYeNdsfnZ9BnO-KPXP5cKJOYB8YWmlFVKZ5OndC1YMVQgg7W5yHJSw; session-token=JfhLmBM6UC3l93CciazeSukwKYDUbn+2sdvJacnCbraObKeU6X9QZxQdcDvP0l4Dg81XRDV8v6SstaE0UwfNmLfHcLxvhd1zAzpimqeIS4Ia2smIYYm2j3kpuN6PPDvGN9VoBw+WKJ04KDOlVV3Vn46pjM3ADy40KwuCs77G3jfdRJpIdQl/LI09ePsdHL/lPXG1AqmI59zSGL6zCbwPQw; JSESSIONID=B702517FE1085C947AFE16DCA7AFA4D2"
+  
+
+  let res=await fetch("https://logistics.amazon.co.uk/station/proxyapigateway/data", {
+    "headers": {
+      "accept": "*/*",
+      "accept-language": "es-ES,es;q=0.9",
+      "content-type": "application/json",
+      "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-origin",
+      "x-requested-with": "XMLHttpRequest",
+      //"cookie": "session-id=258-4989459-4316849; session-id-time=2082787201l; ubid-acbuk=257-3562508-2927626; amzn_sso_rfp=c660dc826a8b8d3a; amzn_sso_token=eyJ4NXUiOiJodHRwOlwvXC9zZW50cnktcGtpLmFtYXpvbi5jb21cL3B1YmxpY2tleVwvOTQzNTY4MSIsInR5cCI6IkpXUyIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiJhbW1hZXN0ckBBTlQuQU1BWk9OLkNPTSIsImF1ZCI6WyJsb2dpc3RpY3MuYW1hem9uLmNvLnVrOjQ0MyJdLCJhY3IiOiJrZXJiZXJvcyIsImFtciI6WyJwd2QiXSwiaXNzIjoic2VudHJ5LmFtYXpvbi5jb20iLCJleHAiOjE2NTM1NjQ3NzcsImlhdCI6MTY1MzUyODc3Nywibm9uY2UiOiIxNTkwZmJiYjlmOTI3YjEwYWI1MjI1ZjhjOThlN2VlNTAzNWFmOWI0MDFlZjY2YWFiN2RjNDgwYzlmYjg2ZTFjIn0.aGKfVv8JiPOn056Zv2NDBXa4RL21KGpgtWXRH9b6VAEr8afBLIzTq8mCB5tfyDKI3biBL_zeApnbZf-y1IWSTM1y0sV6IpLYgkxt2pS8M88-r2s-NDgpsV3eps-fYYmuZL5hw8gLoQb-1vsP415sKgrIDJH0b1iJ3vc2YeaIRpy1XwFoMkrUljcPGqlWeKhtFNtx8vLiEjjVtkGenDVRNXkvXefC59NCgIWYiH9CIBKFhHg1OQjebHKZSZmDlGRcog8dWmHtoC7h7DfCDwZM2-3yv7eux-mwxoK3MI7jYuwfjiw1pEWTbc17g7zb4OQHVLWpCqNirjgGNhM07HJ98w; session-token=iZVPRYo7nj9S879EjXWED2NVSfbfXvpDZ+q2nm4j+RJycVkR0r0HTl3ZJ5H3Fp0aH5NqSEs4AjNkfVwuMjf9w3px8iT7FoeTtafISP7EPUlbi8b1LxriheKq3zcRVt448cCFszvLOuYCSoar7qP6KqFAfbdY+InVT0GZrnohHFW1zwDDkv4JNrniCHx3VXFFc1XmkKzaJfa3C/4UtPe8eA; JSESSIONID=55F20A2F53D0A3CB822B4EDC8CF38B23",
+      "cookie": AMAZONCOOKIE,
+      "Referer": "https://logistics.amazon.co.uk/station/dashboard/",
+      //"Referer": "https://logistics.amazon.co.uk/station/dashboard/overview",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "body":petition,
+    //"body": "{\"resourcePath\":\"/ivs/getpvadata\",\"httpMethod\":\"post\",\"processName\":\"induct\",\"requestBody\":{\"nodeId\":\"DQA2\",\"cycleIds\":[\"CYCLE_1\"],\"processPath\":\"induct\"}}",
+    //'body':' {"resourcePath":"svs/associates/data","httpMethod":"post","processName":"stow","requestBody":{"filters":{"NODE":["DQA2"],"CYCLE":["CYCLE_1"]},"fieldsRequired":["NAME","STATUS","PERFORMANCE","LOCATION"]}}',
+ // 'body':' {"resourcePath":"/ivs/getNodeLineHaulList","httpMethod":"post","processName":"induct","requestBody":{"nodeId":"DQA2","groupBy":""}}',
+//'body':'{"resourcePath":"svs/packages/metrics","httpMethod":"post","processName":"stow","requestBody":{"groupBy":"CLUSTER","filters":{"NODE":["DQA2"],"DRS":["FALSE"],"CYCLE":["CYCLE_1"],"CYCLE_ID":["761553f5-9fc1-4cef-8815-b974bc63f0a9"]},"metrics":["STOW_RATE","SCAN_COMPLIANCE","PROBLEM_SOLVE_COUNT","PLANNED_COUNT","STOW_VS_PLAN","STOWED_COUNT","CURRENT_INDUCTED_COUNT"],"isAggregationRequired":true}}',
+    "method": "POST"
+  }).then((response) => response.json())
+  .then((data) => {
+    //console.log("data", data);
+    return ( data)
+  })
+  console.log("***********************************************************************************************************************************************************************************************************")
+return res
+  
+}
+var  AMAZONCOOKIE
+//getCookie()
+
+async function getCookie(){
+
+  // "session-id=258-4989459-4316849; session-id-time=2082787201l; ubid-acbuk=257-3562508-2927626; csm-hit=tb:s-6F88CY1ATY20PZVWC3BB|1653533326489&t:1653533326645&adb:adblk_no; amzn_sso_rfp=48375470219e43d1; amzn_sso_token=eyJ4NXUiOiJodHRwOlwvXC9zZW50cnktcGtpLmFtYXpvbi5jb21cL3B1YmxpY2tleVwvOTQ3MDU0NCIsInR5cCI6IkpXUyIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiJhbW1hZXN0ckBBTlQuQU1BWk9OLkNPTSIsImF1ZCI6WyJsb2dpc3RpY3MuYW1hem9uLmNvLnVrOjQ0MyJdLCJhY3IiOiJrZXJiZXJvcyIsImFtciI6WyJwd2QiXSwiaXNzIjoic2VudHJ5LmFtYXpvbi5jb20iLCJleHAiOjE2NTM2MTgxMDUsImlhdCI6MTY1MzU4MjEwNSwibm9uY2UiOiJiYzU4YzVkMzZiNDFkZWRlMTZiOTRhMDk2MDQ5MTQzMDNiNWM1YjUyZjdhMjBlNjRmY2MwNjNlZDA0NzYxODY0In0.Hjcxnh8pVxw-ysh1xwfe3qWAFG5T1fjn-TPoOe5b0jSmObacN2PVBzElmMjovccHx7JOEyNWkJSjrIUyd_oa3Kcxp6PKhezVpqYD510X_mD3U6fyXZ1BWZUCp3IH_IVuhHezDXLwsxl5BDu8AAhXtdt0_UkoiZ09GEIK1b88Rx7kWfgBnLeHc9swnGMvnoQtPQBlAkGP5XB0JkOeOTqHuwZTlXCggKMS3IEhAz5iESKTpL-0nTdnJFl7ebr2begUVtUBpmAF2H3E2wDSu0fh_UrVpsmGBKi5ZYeNdsfnZ9BnO-KPXP5cKJOYB8YWmlFVKZ5OndC1YMVQgg7W5yHJSw; session-token=JfhLmBM6UC3l93CciazeSukwKYDUbn+2sdvJacnCbraObKeU6X9QZxQdcDvP0l4Dg81XRDV8v6SstaE0UwfNmLfHcLxvhd1zAzpimqeIS4Ia2smIYYm2j3kpuN6PPDvGN9VoBw+WKJ04KDOlVV3Vn46pjM3ADy40KwuCs77G3jfdRJpIdQl/LI09ePsdHL/lPXG1AqmI59zSGL6zCbwPQw; JSESSIONID=A1A10E8BFF43386F54E970B2AB9C43DF"
+//   "amzn_sso_token=eyJ4NXUiOiJodHRwOlwvXC9zZW50cnktcGtpLmFtYXpvbi5jb21cL3B1YmxpY2tleVwvOTQ3MDU0NCIsInR5cCI6IkpXUyIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiJhbW1hZXN0ckBBTlQuQU1BWk9OLkNPTSIsImF1ZCI6WyJsb2dpc3RpY3MuYW1hem9uLmNvLnVrOjQ0MyJdLCJhY3IiOiJrZXJiZXJvcyIsImFtciI6WyJwd2QiXSwiaXNzIjoic2VudHJ5LmFtYXpvbi5jb20iLCJleHAiOjE2NTM2MjAxNTksImlhdCI6MTY1MzU4NDE1OSwibm9uY2UiOiI4OWQ4MmZhNWEwZTcxNWE3NTFmN2I2YWJlOGFlYzMyMmQyODQ2YjliNmFiZTdiZDZkYTFiZTI2MDExZTcxMTNmIn0.nshbZNafL5UWhfpjxxrkWrnteRosAHryue8nj3m8TXBrRxTenUdONf8SisKNruadmBWoQuMtd8xPBbXKTqDKdBdGRh3xsNjgojbcQeqB1kn_XkYI9WQxFhrXHZXtroGPLR7n2tWNELwucxZXImbUAKlfl89AwMl0JH93iw0gf9tX1z814wza5lLcftaH_-ht1OfKkhJiFco1bcC3vxhmvNieALu_Zw0d6e1iAB6Pu8RZm-PvQIXmGcc-i5C_3onW5mgGNqs09YMDYRkEH8HDL_wQytj4zjmdmZc-I_--cjwEJnYxwKsCwpFSUzIoXDKUNwQnRCxBsqDS9w2rZgzb1Q; amzn_sso_rfp=5c75a4bf930ea905; session-id=261-1189676-6277410; session-id-time=2082787201l; ubid-acbuk=258-3056305-9678453; JSESSIONID=65D8447CD9D9E81527A62495DFFB4B7B; session-token=CdoCRIt7iGQdeW5D9xZ981O+Apkh3URXERruA4jIdNTNoz0b0FO2ApAtca0I6s7MtxPMpfbxEmwjMZwUKOdlSn6Qlp3Zv4y6c874qoJ+SyFLCc0sx6HjrYUxeA4xxmuvKL9x6g8yV9XvLCCUFOXFMzXzr/UtjiiuGSShTOEQqJkAqcoyRobt/eCnArIRrvoF;
+
+  const service = new firefox.ServiceBuilder("./driver");
+  let options = new firefox.Options();
+
+  options.getAcceptInsecureCerts(true);
+  options.headless(false);
+  let driver = await new Builder()
+    .forBrowser("firefox")
+
+    .setFirefoxOptions(options)
+
+    .build();
+  await driver.manage().setTimeouts({ implicit: 10000 });
+
+  await driver.get(
+    "https://logistics.amazon.co.uk/station/dashboard/associatesort")
+    let cookieList= await driver.manage().getCookies()
+    let cookie =''
+    for (const key of cookieList) {
+      
+      cookie=cookie + `${key.name}=${key.value}; `
+      
+
+      
+    }
+    //cookie += '"'
+
+    
+    //console.log("return test",cookie)
+    driver.sleep(5000)
+    driver.quit()
+    AMAZONCOOKIE=cookie
+    console.log("******************************COOKIE SET***********************************")
+    return cookie
+
+
+}
+async function getStowData(){
+  const res=await fetch("https://logistics.amazon.co.uk/station/proxyapigateway/data", {
+  "headers": {
+    "accept": "*/*",
+    "accept-language": "es-ES,es;q=0.9",
+    "content-type": "application/json",
+    "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-requested-with": "XMLHttpRequest",
+    "cookie": "session-id=258-4989459-4316849; session-id-time=2082787201l; ubid-acbuk=257-3562508-2927626; csm-hit=tb:RK4Y2CS5WMSC53RXK7EV+b-RK4Y2CS5WMSC53RXK7EV|1653598239126&t:1653598239126&adb:adblk_no; amzn_sso_rfp=8bbe299c0be23904; session-token=bj+yq2Io1eMAkcTyrIg0Q90XiGVmIxegQTrlc4tKc4YwSjRhWwuA6oHyglFk8DrmrXXTDPaJmY+EjphUhWvR8xp9GLfPntFqN4PuPoyFTFlQkvDOW2cfbPfUoUpDG7DmyleY/tdQaOFkEf0gRowaW2mf+FdRr/9lWuMrxF2WGE5LnqV7WFPAbjWZqaS9x1HTezGXrOyZ3CK+riVpoqqmSA; amzn_sso_token=eyJ4NXUiOiJodHRwOlwvXC9zZW50cnktcGtpLmFtYXpvbi5jb21cL3B1YmxpY2tleVwvOTQ3MDU0NCIsInR5cCI6IkpXUyIsImFsZyI6IlBTMjU2In0.eyJzdWIiOiJhbW1hZXN0ckBBTlQuQU1BWk9OLkNPTSIsImF1ZCI6WyJsb2dpc3RpY3MuYW1hem9uLmNvLnVrOjQ0MyJdLCJhY3IiOiJrZXJiZXJvcyIsImFtciI6WyJwd2QiXSwiaXNzIjoic2VudHJ5LmFtYXpvbi5jb20iLCJleHAiOjE2NTM2NTQyMzMsImlhdCI6MTY1MzYxODIzMywibm9uY2UiOiI3YmE0OWE3NjVjMjgyNTFmMjc5OGMyZWE2ZTMyZjBmNzc3MWUwNjE1MDBkNGZkNDU1MmU4MmQ1YWUwNjI5NTdmIn0.qpKEl_8xo8HWv62AFcGG5ewLwKSDQI6y6jI2Yt1AXF7TsSQfrvu8OtCNC_yGoj_Lpgw5g0WNfw1-8yrxMB8iWHbE2XSqbPbxrvRF_zaaZagN11KX99TlpS5ySDrk5NqfMOQUVAIhc7z-J_riFPVB_ogr1hUa7iHP6ntUqMxbyFM0wti6NJz9lnWntXYQe0eWMFlutW_MsvgESvXrS86xjPDocYcsmS-Ea3Zm95qnFcWaTc-_TWlY1RloiXiU01lrTQmt1LdW0GySHV8MUAHkeOcLaKOvuK5HV9W0sg9psRH5Prias04XJxNjREYK9LqtpeIlAb-AIYrzBI6UierODw; JSESSIONID=DE14AA59D8C2653266E93DA52D30B951",
+    "Referer": "https://logistics.amazon.co.uk/station/dashboard/stow",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "body": "{\"resourcePath\":\"svs/packages/metrics\",\"httpMethod\":\"post\",\"processName\":\"stow\",\"requestBody\":{\"groupBy\":\"CLUSTER\",\"filters\":{\"NODE\":[\"DQA2\"],\"DRS\":[\"FALSE\"],\"CYCLE\":[\"CYCLE_1\"],\"CYCLE_ID\":[\"761553f5-9fc1-4cef-8815-b974bc63f0a9\"]},\"metrics\":[\"STOW_RATE\",\"SCAN_COMPLIANCE\",\"PROBLEM_SOLVE_COUNT\",\"PLANNED_COUNT\",\"STOW_VS_PLAN\",\"STOWED_COUNT\",\"CURRENT_INDUCTED_COUNT\"],\"isAggregationRequired\":true}}",
+  "method": "POST"
+}).then((response) => response.json())
+.then((data) => {
+  //console.log("data", data);
+  return ( data)
+})
+return res
+
+}
+async function getAPIstow(){
+  const res = await fetch("https://logistics.amazon.co.uk/station/flow/sort/data?stationCode=DQA2&cycleId=CYCLE_1", {
+  "headers": {
+    "accept": "*/*",
+    "accept-language": "es-ES,es;q=0.9",
+    "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-requested-with": "XMLHttpRequest",
+    "cookie": AMAZONCOOKIE,
+    "Referer": "https://logistics.amazon.co.uk/station/dashboard/overview",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "body": null,
+  "method": "GET"
+}).then((response) => response.json())
+.then((data) => {
+  //console.log("data", data);
+  return ( data)
+})
+return res
+}
+async function getAPIinduct(){
+
+  const res= await fetch("https://logistics.amazon.co.uk/station/flow/induct/data?stationCode=DQA2&cycleId=CYCLE_1", {
+  "headers": {
+    "accept": "*/*",
+    "accept-language": "es-ES,es;q=0.9",
+    "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "x-requested-with": "XMLHttpRequest",
+    "cookie": AMAZONCOOKIE,
+    "Referer": "https://logistics.amazon.co.uk/station/dashboard/overview",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "body": null,
+  "method": "GET"
+}).then((response) => response.json())
+.then((data) => {
+  //console.log("data", data);
+  return ( data)
+})
+return res
+}
+async function getApiWip(){
+  const res=await fetch("https://logistics.amazon.co.uk/station/flow/stow-wip/interval/data?stationCode=DQA2&cycleId=CYCLE_1", {
+    "headers": {
+      "accept": "*/*",
+      "accept-language": "es-ES,es;q=0.9",
+      "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"101\", \"Google Chrome\";v=\"101\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-origin",
+      "x-requested-with": "XMLHttpRequest",
+      "cookie":AMAZONCOOKIE,
+      "Referer": "https://logistics.amazon.co.uk/station/dashboard/overview",
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "body": null,
+    "method": "GET"
+  }).then((response) => response.json())
+  .then((data) => {
+    console.log("data", data);
+    return ( data)
+  })
+  console.log(res)
+  return res
+  }

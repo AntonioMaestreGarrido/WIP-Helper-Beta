@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow Ratio</title>
+  <script type="module" src="./index.js" defer></script>
+  <link href="./src/tabu/dist/css/tabulator_midnight.css" rel="stylesheet">
+  <script type="text/javascript" src="./src/tabu//dist/js/tabulator.min.js"></script>
+
+  <!-- <script
+      type="text/javascript"
+      src="./src/css/tabulator.min.css"
+    ></script> -->
+
+  <!-- https://www.npmjs.com/package/table-sort-js -->
+
+  <!-- ******************CDN charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <link rel="stylesheet" href="./src/css/styles.css" />
+  <link rel="icon" type="image/x-icon" href="./src/img/favicon.ico">
+</head>
+
+<body>
+  <h1>WIP Helper  0.155</h1>
+  <button id="startButton">Off</button>
+  <button id="showChart">chart</button>
+
+  <button id="test">test</button>
+  <button id="testpos">move</button>
+  <button id="botonGetStowersRates">Stowers</button>
+  <button id="botonGetInductersRates">Inducters</button>
+  <button class="boton refreshTimeWindows">Refresh windows</button>
+  <button class="boton getRanking">Get Ranking</button>
+  <button class="boton getSide">Get Side</button>
+  <label for="checkBoxSide">Live Sideline</label>
+  <input name="checkBoxSide" id="checkBoxSide" type="checkbox">
+  
+  <div id="app">
+    <div id="generalInfo">
+      <div>
+        <p class="info volumeExpected">Volume Expected:</p>
+        <p class="info SideLineIn">SideLine In: <span class="dataSideLineIn">0</span></p>
+        <p class="info SideLineOut">SideLine Out: <span class="dataSideLineOut">0</span></p>
+      </div>
+      <div class="generalDivision">
+        <p class="info startTime">Start time</p>
+        <p class="info endTime">End time</p>
+     </div>
+      <div class="generalDivision">
+        <p class="info inductHourlyRate">Induct Hr</p>
+        <p class="info stowHourlyRate">Stow Hr</p>
+      </div>
+      <div class="generalDivision">
+        <p class="info inductWindowRate">Induct Wr</p>
+        <p class="info stowWindowRate">Stow Wr</p>
+     </div>
+    
+    
+    </div>
+    <table id="main">
+      <thead>
+        <tr>
+          <th id="site" contenteditable="true">DQA2</th>
+          <th>Actual</th>
+          <th>Min</th>
+          <th>Max</th>
+
+          <th contenteditable="true">Custom</th>
+          <th>Min<br> Custom</th>
+          <th>Max<br> Custom</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Ats</th>
+          <td id="ATsAct"></td>
+          <td id="ATsMin"></td>
+          <td id="ATsMax"></td>
+
+          <td id="ATsCustom" contenteditable="true"></td>
+
+          <td id="MinCustom"></td>
+          <td id="MaxCustom"></td>
+        </tr>
+        <tr>
+          <th id="botonGetStowersRates">Stow Rate</th>
+          <td id="StowRateAct"></td>
+          <td id="StowRateMin"></td>
+          <td id="StowRateMax"></td>
+
+          <td id="StowRateCustom" contenteditable="true"></td>
+          <td>
+            <div class="modificadores">
+              <button class="sumatorios stow">+<br>100</button>
+              <button class="sumatorios stow">+<br>10</button>
+              <button class="sumatorios stow">-<br>10</button>
+              <button class="sumatorios stow">-<br>100</button>
+            </div>
+          </td>
+          <td class="quickCalc">
+            <button class="sumatorios" id="customMaxStow">Max<br> Stow</button>
+            <button class="sumatorios" id="customMinStow">Min<br> Stow</button>
+          </td>
+        </tr>
+        <tr>
+          <th id="botonGetInductersRates">Induc Rate</th>
+          <td id="InductRateAct"></td>
+          <td id="InductRateMin"></td>
+          <td id="InductRateMax"></td>
+
+          <td id="InductRateCustom" contenteditable="true"></td>
+          <td>
+            <div class="modificadores">
+              <button class="sumatorios induct">+<br>100</button>
+              <button class="sumatorios induct">+<br>10</button>
+              <button class="sumatorios induct">-<br>10</button>
+              <button class="sumatorios induct">-<br>100</button>
+            </div>
+          </td>
+          <td class="quickCalc">
+            <button class="sumatorios" id="customMaxInduct">Max<br> Induct</button>
+            <button class="sumatorios" id="customMinInduct">Min<br> Induct</button>
+          </td>
+        </tr>
+        <tr>
+          <th>Minutes to Check</th>
+          <td id="MinutesToCheck"></td>
+          <td></td>
+          <td></td>
+
+          <td id="MinutesToCheckCustom" contenteditable="true"></td>
+          <td>
+            <div class="modificadores">
+              <button class="sumatorios minutes">+<br>5</button>
+              <button class="sumatorios minutes">+<br>1</button>
+              <button class="sumatorios minutes">-<br>1</button>
+              <button class="sumatorios minutes">-<br>5</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>Ats at Time Check</th>
+          <td id="ATsAtTime"></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td id="ATsAtTimeCustom"></td>
+          <td id="copyCell"><button id="copy">Copy</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div id="asociatesRates">
+      <div id="stowersRates">
+
+        <!-- <table id="stowerstable" class="table-sort table-arrows"></table> -->
+      </div>
+      <div id="inductersRates">
+
+      </div>
+    </div>
+</body>
+<div id="testable"></div>
+</div>
+<div id="windows15Data">
+  <h2 id="windows15DataTitle">WIP compliance</h2>
+
+</div>
+
+<div id="ranking">
+  <h2>WIP Spanish League</h2>
+  <div id="rankingcontainer"></div>
+</div>
+
+</div>
+<div class="setting modal">
+  <h2 id="settingTitle">Setting</h2>
+  <label for="site" id="site">Site</label>
+  <input type="text" name="site" id="site">
+  <br>
+  <label for="update" id="update">Update Frecuency</label>
+  <input type="number" name="update" id="site">
+  <br>
+  <label for="lowSort" id="lowSort">Low Sort Limit</label>
+  <input type="number" name="lowSort" id="lowSort">
+  <br>
+  <label for="lowSort" id="lowSort">Low Sort Limit</label>
+  <input type="number" name="lowSort" id="lowSort">
+
+  
+</div>
+<div id="canvasContainer">
+  <canvas id="test" width="1000" height="300"></canvas>
+  <canvas id="pieComply" width="1000" height="300"></canvas>
+</div>
+
+
+</html>

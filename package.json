@@ -1,0 +1,22 @@
+{
+  "name": "flow-rate",
+  "version": "1.0.0",
+  "description": "Little app using a local node server and this page to monitor site stow rate\r test",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AntonioMaestreGarrido/Flow-Rate.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AntonioMaestreGarrido/Flow-Rate/issues"
+  },
+  "homepage": "https://github.com/AntonioMaestreGarrido/Flow-Rate#readme",
+  "dependencies": {
+    "tabulator-tables": "^5.1.8"
+  }
+}
