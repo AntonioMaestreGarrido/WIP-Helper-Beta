@@ -18,6 +18,9 @@ export async function renderWindowsData() {
   const data = await getAPIdata(petBody);
   const dwell = await getDwell(CONFIG.site);
   sessionStorage.setItem("windows", JSON.stringify(data.flowPVAData[15][2]));
+  const sccData = data.flowPVAData[15];
+  console.log(sccData);
+  renderGeneralRates(data.flowPVAData[15][2]);
   const sideLined = await setSideLine();
   let volume = document
     .querySelector(".volumeExpected")
@@ -36,9 +39,7 @@ export async function renderWindowsData() {
   //const data=sccwindowData
   console.log("wdonswdata llamado a las " + Date());
 
-  const sccData = data.flowPVAData[15];
-  console.log(sccData);
-  renderGeneralRates(data.flowPVAData[15][2]);
+  
 
   const induction = data.flowPVAData[15][0];
   const sortation = data.flowPVAData[15][2];
