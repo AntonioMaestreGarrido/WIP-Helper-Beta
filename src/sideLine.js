@@ -11,7 +11,7 @@ export async function setSideLine() {
   // console.log( end)
   // console.log(start)
 
-
+  //getAts()
 
 
   /////////////
@@ -24,10 +24,24 @@ export async function setSideLine() {
   console.log("*")
  return list
 }
+async function   getAts(){
+  let atsTotal=0
+ const dwell= await getDwell("DQA2")
+console.log(dwell)
+let atsDwell
+dwell.forEach((ele)=>{if(ele.packageStatus==="Inducted"){atsDwell=ele.columnToViewDataMap}})
+
+for (const key in atsDwell) {
+  // console.log(key)
+  // console.log(held[key].value)
+  atsTotal = atsTotal + parseInt(atsDwell[key].value);
+}
+console.log(atsTotal)
+}
 export async function getSideOut(site) {
   let sideTotal = 0;
-  
   const dwell = await getDwell(site);
+  
   // console.log(dwell);
   // console.log(dwell[5].packageStatus);
   let held = dwell.filter((ele) => {

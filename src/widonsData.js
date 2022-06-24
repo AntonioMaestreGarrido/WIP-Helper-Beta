@@ -64,12 +64,21 @@ export async function renderWindowsData() {
   windowInfoContainer.appendChild(windowNull);
 
   let complience = await compliencePorCent();
+  let inductAcumulu=0
+  let stowAcumulu=0
   induction.dataPointList.map((ele, index) => {
+    console.log("la ventana es la ",index)
     //induction.dataPointList.forEach((ele, index) => {
-    if (index === induction.dataPointList.length - 1) {
-      return;
+    // if (index === induction.dataPointList.length - 1) {
+    //   return;
+    // }
+    if(index==30){
+      console.log("")
     }
+
     let sort = sortation.dataPointList[index].metricValue;
+    inductAcumulu=inductAcumulu+ele.metricValue - sideLined[index]
+    stowAcumulu=stowAcumulu+sort
     totalAts = totalAts + (ele.metricValue - sideLined[index] - sort); // experimentando con el side
     if (sort > lowSortThreshold) {
       //totalAts=totalAts-sort
@@ -96,7 +105,10 @@ export async function renderWindowsData() {
     let now = new Date().getTime();
 
     // console.log(now, new Date(windowTime), now > windowTime);
-    if (now > windowTime + 15 * 60 * 1000) {
+    console.log(now)
+    console.log(windowTime +( 15 * 60 * 1000))
+   // if (now > windowTime +( 15 * 60 * 1000)) {
+     //comenatdo a falta de confirmar
       let partialWindow = createNewEle({ type: "div", class: "divContainer" });
       let timeWindowMark = createNewEle({
         type: "div",
@@ -111,7 +123,7 @@ export async function renderWindowsData() {
       }
       if (
         sort < lowSortThreshold ||
-        index === induction.dataPointList.length - 2
+        index === induction.dataPointList.length - 1
       ) {
         timeWindowMark.classList.add("nula");
       } else {
@@ -129,12 +141,22 @@ export async function renderWindowsData() {
       let sortData = createNewEle({
         type: "div",
         class: "windowData",
-        content: `Induction=${ele.metricValue}`,
+        content: `Induction=${ele.metricValue-sideLined[index]}`,
       });
       let inductData = createNewEle({
         type: "div",
         class: "windowData",
         content: `Sortattion=${sort}`,
+      });
+      let inductAcuData = createNewEle({
+        type: "div",
+        class: "windowData",
+        content: `Induct Total=${inductAcumulu}`,
+      });
+      let sortAcuData = createNewEle({
+        type: "div",
+        class: "windowData",
+        content: `Stow total=${stowAcumulu}`,
       });
       let AtsData = createNewEle({
         type: "div",
@@ -159,12 +181,14 @@ export async function renderWindowsData() {
       partialWindow.appendChild(timeWindowMark);
       partialWindow.appendChild(inductData);
       partialWindow.appendChild(sortData);
+      partialWindow.appendChild(inductAcuData);
+      partialWindow.appendChild(sortAcuData);
       partialWindow.appendChild(sideInWindow);
       partialWindow.appendChild(AtsData);
       partialWindow.appendChild(buffer);
       partialWindow.appendChild(flowRate);
       windowContainer.appendChild(partialWindow);
-    }
+    
     return true;
   });
 

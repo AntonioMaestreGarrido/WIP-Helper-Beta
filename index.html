@@ -38,7 +38,7 @@
   <button class="boton refreshTimeWindows">Refresh windows</button>
   <button class="boton getRanking">Get Ranking</button>
   <button class="boton getSide">Get Side</button>
-  <label for="checkBoxSide">Live Sideline</label>
+  <!-- <label for="checkBoxSide">Live Sideline</label> -->
   <input name="checkBoxSide" id="checkBoxSide" type="checkbox">
   
   <div id="app">
@@ -131,8 +131,8 @@
         <tr>
           <th>Minutes to Check</th>
           <td id="MinutesToCheck"></td>
-          <td></td>
-          <td></td>
+          <th>Buffer</th>
+          <th>At Check</th>
 
           <td id="MinutesToCheckCustom" contenteditable="true"></td>
           <td>
@@ -147,8 +147,8 @@
         <tr>
           <th>Ats at Time Check</th>
           <td id="ATsAtTime"></td>
-          <td></td>
-          <td></td>
+          <td id="buffer"></td>
+          <td id="bufferAtCheck"></td>
           <td></td>
           <td id="ATsAtTimeCustom"></td>
           <td id="copyCell"><button id="copy">Copy</button></td>

@@ -78,6 +78,8 @@ export async function getSideList(site) {
   if(!site){site=CONFIG.site}
   let start =(new Date(JSON.parse(sessionStorage.getItem("timetable")).start).getTime()/1000)
   let end =(new Date(JSON.parse(sessionStorage.getItem("timetable")).end).getTime()/1000)
+  start=start-(4*60*60)
+  end=end +(4*60*60)
   let d = new Date()
   // let end=Math.floor(d.getTime()/1000)
   //let start=Math.floor((d.getTime() -(10*60*60*1000))/1000)

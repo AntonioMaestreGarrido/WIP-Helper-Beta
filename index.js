@@ -211,6 +211,13 @@ async function filltable() {
   document.getElementById("MinutesToCheck").innerText = MinutesToCheck;
 
   document.getElementById("ATsAtTime").innerText = ATsAtTime;
+
+  document.getElementById("buffer")
+  .textContent = Math.round(ATsAct*60/StowRateAct)+"m";
+  // if(document.getElementById("buffer")
+  // .textContent === Math.round(ATsAct*60/StowRateAct)>30||document.getElementById("buffer")
+  // .textContent === Math.round(ATsAct*60/StowRateAct)<15){document.getElementById("buffer").classList.add("failed")}else{document.getElementById("buffer").classList.add("passed")}
+  document.getElementById("bufferAtCheck").textContent =  Math.round(ATsAtTime*60/StowRateAct)+"m";
   //document.getElementById("ATsAtTimeCustom").innerText = ATsAtTime;
 
   giveStyle();
