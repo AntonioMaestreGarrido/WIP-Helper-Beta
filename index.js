@@ -25,13 +25,7 @@ function isScreenLockSupported() {
 }
 getScreenLock();
 async function getScreenLock() {
-  const camiones = await getAPIdata({
-    resourcePath: "/ivs/getNodeLineHaulList",
-    httpMethod: "post",
-    processName: "induct",
-    requestBody: { nodeId: CONFIG.site, groupBy: "" },
-  });
-  console.log(camiones);
+ 
   if (isScreenLockSupported()) {
     let screenLock;
     try {

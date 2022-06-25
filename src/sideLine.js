@@ -73,7 +73,7 @@ function parseDate(data) {
   const end=new Date(ventanas.dataPointList[ventanas.dataPointList.length-1].timeStampVal)
   console.log(start,end)
   const sideListArray = [];
-  data.forEach((ele) => {
+  const m=data.map((ele) => {
     // console.log(ele);
     ele.last = new Date(ele.lastUpdatedTime);
     let d = new Date();
@@ -186,7 +186,7 @@ export function windowSidelined(sideListArray){
      windowSide[i]=0;
     
   }
-  sideListArray.forEach((ele,index) => {
+  let m=sideListArray.map((ele,index) => {
     let w=ele.ventana-1
     windowSide[w]=windowSide[w]+1
     //console.log(windowSide)

@@ -39,8 +39,6 @@ export async function renderWindowsData() {
   //const data=sccwindowData
   console.log("wdonswdata llamado a las " + Date());
 
-  
-
   const induction = data.flowPVAData[15][0];
   const sortation = data.flowPVAData[15][2];
   console.log(sortation.dataPointList.length);
@@ -64,21 +62,22 @@ export async function renderWindowsData() {
   windowInfoContainer.appendChild(windowNull);
 
   let complience = await compliencePorCent();
-  let inductAcumulu=0
-  let stowAcumulu=0
-  induction.dataPointList.map((ele, index) => {
-    console.log("la ventana es la ",index)
+  let inductAcumulu = 0;
+  let stowAcumulu = 0;
+  const totalData=[]
+  let partialData= induction.dataPointList.map((ele, index) => {
+    console.log("la ventana es la ", index);
     //induction.dataPointList.forEach((ele, index) => {
     // if (index === induction.dataPointList.length - 1) {
     //   return;
     // }
-    if(index==30){
-      console.log("")
+    if (index == 30) {
+      console.log("");
     }
 
     let sort = sortation.dataPointList[index].metricValue;
-    inductAcumulu=inductAcumulu+ele.metricValue - sideLined[index]
-    stowAcumulu=stowAcumulu+sort
+    inductAcumulu = inductAcumulu + ele.metricValue - sideLined[index];
+    stowAcumulu = stowAcumulu + sort;
     totalAts = totalAts + (ele.metricValue - sideLined[index] - sort); // experimentando con el side
     if (sort > lowSortThreshold) {
       //totalAts=totalAts-sort
@@ -105,10 +104,10 @@ export async function renderWindowsData() {
     let now = new Date().getTime();
 
     // console.log(now, new Date(windowTime), now > windowTime);
-    console.log(now)
-    console.log(windowTime +( 15 * 60 * 1000))
-   // if (now > windowTime +( 15 * 60 * 1000)) {
-     //comenatdo a falta de confirmar
+    console.log(now);
+    console.log(windowTime + 15 * 60 * 1000);
+    if (now > windowTime + 15 * 60 * 1000) {
+      //comenatdo a falta de confirmar
       let partialWindow = createNewEle({ type: "div", class: "divContainer" });
       let timeWindowMark = createNewEle({
         type: "div",
@@ -141,7 +140,7 @@ export async function renderWindowsData() {
       let sortData = createNewEle({
         type: "div",
         class: "windowData",
-        content: `Induction=${ele.metricValue-sideLined[index]}`,
+        content: `Induction=${ele.metricValue - sideLined[index]}`,
       });
       let inductData = createNewEle({
         type: "div",
@@ -188,10 +187,13 @@ export async function renderWindowsData() {
       partialWindow.appendChild(buffer);
       partialWindow.appendChild(flowRate);
       windowContainer.appendChild(partialWindow);
-    
-    return true;
-  });
 
+      
+    }return{"site":CONFIG.site,"time":ele.timeStampVal,"induccion":ele.metricValue - sideLined[index],"sort":sort,"side":sideLined[index],
+  "ats":totalAts,inductAcumulu,stowAcumulu,"buffer":bufferInMinutes.toFixed(1)
+  }
+  });
+totalData.push(partialData)
   function createNewEle(ele) {
     const newEle = document.createElement(ele.type);
     newEle.classList.add(ele.class);
@@ -206,7 +208,7 @@ export async function renderWindowsData() {
   windowPassed.textContent = `Passed ${complience.pass}`;
   windowFailed.textContent = `Failed ${complience.failed}`;
   windowNull.textContent = `Null ${complience.nulas}`;
-  return true;
+  return totalData;
 }
 async function compliencePorCent() {
   let pass = document.querySelectorAll(".passed").length;
@@ -215,6 +217,7 @@ async function compliencePorCent() {
   let total = pass + failed;
   let container = document.querySelectorAll(".divContainer");
   let nulas = document.querySelectorAll(".nula").length;
+  let time=document.querySelector(".endTime").textContent
   // console.log(nulas.length)
   // container.forEach((ele)=>{if(ele.querySelectorAll(".passed").length>0){pass++}else{failed++}})
   // console.log(pass,failed)
@@ -224,7 +227,7 @@ async function compliencePorCent() {
     txC = 0;
   }
 
-  return { total, pass, failed, nulas, txC };
+  return { total, pass, failed, nulas, txC,time };
 }
 
 export async function getRanking() {
@@ -255,7 +258,7 @@ export async function getRanking() {
     "DQV2",
     "DQV1",
   ];
-  const sites = [
+  let sites = [
     [
       "DQB5",
       "DQV1",
@@ -333,20 +336,22 @@ export async function getRanking() {
       "Barcelona4",
     ],
   ];
-  const sites23 = [
-    ["DQB5", "DQV1", "DQV6"],
-    ["AMPL San Sebastian", "Valencia", "Valencia"],
-  ];
+
   console.log(sites);
+  //  sites = rankingFrancia
   const ranking = [];
+  const todosLosDatos=[]
   for (let i = 0; i < sites[0].length; i++) {
     CONFIG.site = sites[0][i];
-    await renderWindowsData();
+    let partial=await renderWindowsData()
+    todosLosDatos.push(partial) 
     let t = await compliencePorCent();
     console.log(t);
     ranking.push({ site: sites[0][i], percentil: t.txC, name: sites[1][i] });
     console.log("ranking en " + CONFIG.site);
   }
+  console.log("listado todas")
+  console.log(todosLosDatos)
   console.log(ranking.sort((a, b) => b.percentil - a.percentil));
 
   renderRanking(ranking);
@@ -357,11 +362,12 @@ export async function getRanking() {
   return ranking;
 }
 function renderRanking(ranking) {
+  console.log(ranking)
   let container = document.querySelector("#rankingcontainer");
   container.innerHTML = "";
   for (let i = 0; i < ranking.length; i++) {
     let fila = document.createElement("div");
-    fila.classList.add("fila")
+    fila.classList.add("fila");
     let site = document.createElement("div");
     let tanto = document.createElement("div");
     let nombre = document.createElement("div");
@@ -372,8 +378,7 @@ function renderRanking(ranking) {
     fila.appendChild(nombre);
     fila.appendChild(tanto);
     container.appendChild(fila);
-    document.querySelector("#ranking").appendChild(container)
-    
+    document.querySelector("#ranking").appendChild(container);
 
     // let siteInRanking = document.createElement("div");
     // siteInRanking.textContent = `${String(i + 1).padStart(2, "0")} - ${
@@ -382,25 +387,170 @@ function renderRanking(ranking) {
     // container.appendChild(siteInRanking);
   }
 }
-// ["DQB2",
-// "DQZ5",
-// "DAS1",
-// "DGA2",
-// "DIC1",
-// "DQA2",
-// "DMA2",
-// "DMA3",
-// "DMA4",
-// "DMA6",
-// "DMZ1",
-// "DMZ2",
-// "DMZ4",
-// "DCZ3",
-// "DCT2",
-// "DCT4",
-// "DCT9",
-// "DQA7",
-// "DCT7",
-// "DCZ4",
-// "DQA4",
-// "DQV2"]
+
+const rankingFrancia = [
+  [
+    "DLP5",
+    "DND2",
+    "DWP2",
+    "DWV1",
+    "DAO9",
+    "DND1",
+    "DAO2",
+    "DNC3",
+    "DLP4",
+    "DNC1",
+    "DLP2",
+    "DNC2",
+    "DAC2",
+    "DAO1",
+    "DAR1",
+    "DBF1",
+    "DIF6",
+    "DAO3",
+    "DIF2",
+    "DIF3",
+    "DIF4",
+    "DWL1",
+    "DIF5",
+    "DRQ6",
+    "DAR2",
+    "DWP1",
+    "DIF1",
+    "DWP8",
+    "DWB9",
+    "DWP3",
+    "DWP9",
+    "DAR9",
+    "DRQ5",
+    "DLP9",
+    "DRQ7",
+    "DAC9",
+    "DIF8",
+    "DWP7",
+    "DWV9",
+    "DAC8",
+    "DHG6",
+  ],
+  [
+    "Villeneuve",
+    "Moult",
+    "Nice2",
+    "Orleans",
+    "Mulhouse",
+    "DND1",
+    "Woippy",
+    "Gauchy",
+    "Rivesaltes",
+    "Lille",
+    "Toulouse",
+    "Lens",
+    "Morlaas",
+    "Strasbourg",
+    "Lyon",
+    "Longvic",
+    "Noisy",
+    "Fontaine",
+    "Paris SE",
+    "Paris SW",
+    "Paris NE",
+    "Nantes",
+    "Osny",
+    "Portes-les-Valence",
+    "DAR2",
+    "Marseille",
+    "Paris NW",
+    "Toulon",
+    "Rennes",
+    "DWP3_AMPL",
+    "Marseille (SC)",
+    "DAR9_AMPL",
+    "Anse",
+    "DLP9_AMPL",
+    "Corbas",
+    "DAC9_AMPL",
+    "Moissy-Cramayel",
+    "Marseille",
+    "Saint-Pierre-des-Corps",
+    "DAC8_AMPL",
+    "Antwerpen",
+  ],
+];
+const rankingItalia = [
+  [
+    "DLY1",
+    "DLZ3",
+    "DSG1",
+    "DLO4",
+    "DVN5",
+    "DER5",
+    "DVN6",
+    "DLO5",
+    "DFV2",
+    "DER1",
+    "DVN1",
+    "DNP1",
+    "DTT1",
+    "DLO8",
+    "DTC2",
+    "DFV1",
+    "DER3",
+    "DVN3",
+    "DPU1",
+    "DVN2",
+    "DLO7",
+    "DER2",
+    "DSI2",
+    "DPI3",
+    "DMR1",
+    "DPI2",
+    "DLG1",
+    "DLZ1",
+    "DSI1",
+    "DRU1",
+    "DUM1",
+    "DTC1",
+    "DLO3",
+    "DLO1",
+    "DLZ2",
+    "DLO2",
+  ],
+  [
+    "Cisterna di Latina",
+    "Roma Magliana",
+    "Cagliari",
+    "Buccinasco",
+    "Dese",
+    "Calderara Di Reno",
+    "Riese Pio X",
+    "Castegnato",
+    "Udine",
+    "Valsamoggia",
+    "Vigonza",
+    "Arzano",
+    "Trento",
+    "Pioltello",
+    "Montacchiello",
+    "Pordenone",
+    "Parma",
+    "Vicenza",
+    "Bitonto",
+    "Verona",
+    "Mezzate",
+    "Sant'Arcangelo di Romagna",
+    "Catania",
+    "Grugliasco",
+    "Camerano",
+    "Brandizzo",
+    "Genova",
+    "Roma Settecamini",
+    "Palermo",
+    "San Giovanni Teatino",
+    "Soccorso",
+    "Calenzano",
+    "Burago di Molgora",
+    "Milano Rogoredo",
+    "Pomezia",
+    "Origgio",
+  ],
+];
