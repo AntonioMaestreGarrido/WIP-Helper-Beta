@@ -496,7 +496,7 @@ function calculateNextWindowCall() {
 }
 function windowsInterval() {
   renderWindowsData();
-  setTimeout(windowsInterval, 15 * 60 * 1000 - 1);
+  setTimeout(windowsInterval, 5 * 60 * 1000 - 1);
 }
 //renderWindowsData()
 // first parameter Table ID, second arrayasync

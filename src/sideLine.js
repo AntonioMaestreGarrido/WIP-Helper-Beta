@@ -78,9 +78,8 @@ function parseDate(data) {
     ele.last = new Date(ele.lastUpdatedTime);
     let d = new Date();
     d.getMinutes();
-    // console.log(ele.last.getHours(), ele.last.getMinutes());
-    // let window =( ele.last.getHours()-start.getHours())*4 ;
-    let window =( ele.last.getHours()-start.getHours())*4 + Math.ceil((ele.last.getMinutes()+1) / 15);
+    // el +1 depende de si el paquete cae en el minuto justo de la ventana o no
+    let window =( ele.last.getHours()-start.getHours())*4 + Math.ceil((ele.last.getMinutes()) / 15);
     // console.log(window);
     sideListArray.push({
       Tracking: ele.trackingId,

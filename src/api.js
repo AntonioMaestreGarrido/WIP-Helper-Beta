@@ -17,7 +17,7 @@ export async function getAPIdata(peticion) {
 
       return scc;
     })
-    .catch((error) => console.log("No se ha podido acceder a SSC", error));
+    .catch((error) => []);
   return scc;
 }
 

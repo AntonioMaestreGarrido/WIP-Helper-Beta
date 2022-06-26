@@ -16,7 +16,10 @@ export async function renderWindowsData() {
   };
   //const sideLined=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
   const data = await getAPIdata(petBody);
+  console.log(data)
   const dwell = await getDwell(CONFIG.site);
+  console.log(data.error)
+  if(data.error ==0 ){return }
   sessionStorage.setItem("windows", JSON.stringify(data.flowPVAData[15][2]));
   const sccData = data.flowPVAData[15];
   console.log(sccData);
@@ -66,7 +69,7 @@ export async function renderWindowsData() {
   let stowAcumulu = 0;
   const totalData=[]
   let partialData= induction.dataPointList.map((ele, index) => {
-    console.log("la ventana es la ", index);
+    
     //induction.dataPointList.forEach((ele, index) => {
     // if (index === induction.dataPointList.length - 1) {
     //   return;
@@ -76,7 +79,8 @@ export async function renderWindowsData() {
     }
 
     let sort = sortation.dataPointList[index].metricValue;
-    inductAcumulu = inductAcumulu + ele.metricValue - sideLined[index];
+    inductAcumulu = inductAcumulu + ele.metricValue ;
+    // inductAcumulu = inductAcumulu + ele.metricValue - sideLined[index];
     stowAcumulu = stowAcumulu + sort;
     totalAts = totalAts + (ele.metricValue - sideLined[index] - sort); // experimentando con el side
     if (sort > lowSortThreshold) {
@@ -104,8 +108,8 @@ export async function renderWindowsData() {
     let now = new Date().getTime();
 
     // console.log(now, new Date(windowTime), now > windowTime);
-    console.log(now);
-    console.log(windowTime + 15 * 60 * 1000);
+    // console.log(now);
+    // console.log(windowTime + 15 * 60 * 1000);
     if (now > windowTime + 15 * 60 * 1000) {
       //comenatdo a falta de confirmar
       let partialWindow = createNewEle({ type: "div", class: "divContainer" });
@@ -114,9 +118,9 @@ export async function renderWindowsData() {
         class: "title",
         content: title,
       });
-      console.log(index, induction.dataPointList.length - 1);
+      // console.log(index, induction.dataPointList.length - 1);
 
-      console.log((volumenTotal / complience.total / 15) * 2);
+      // console.log((volumenTotal / complience.total / 15) * 2);
       if (bufferInMinutes === 30) {
         console.log("");
       }
@@ -127,7 +131,7 @@ export async function renderWindowsData() {
         timeWindowMark.classList.add("nula");
       } else {
         if (
-          (bufferInMinutes > 15 && bufferInMinutes < 30) ||
+          (bufferInMinutes >= 15 && bufferInMinutes <= 30) ||
           index == induction.dataPointList.length - 1
         ) {
           timeWindowMark.classList.add("passed");
@@ -140,7 +144,7 @@ export async function renderWindowsData() {
       let sortData = createNewEle({
         type: "div",
         class: "windowData",
-        content: `Induction=${ele.metricValue - sideLined[index]}`,
+        content: `Induction=${ele.metricValue }`,
       });
       let inductData = createNewEle({
         type: "div",
