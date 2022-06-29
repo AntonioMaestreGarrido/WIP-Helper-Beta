@@ -84,7 +84,7 @@ async function truckList() {
   console.log(truckList[1])
   truckList.forEach((ele) => {
     trucksNumber++;
-    if (!isNaN(ele.volume)) {
+    if (!isNaN(ele.volume) && !ele.volume==0) {
       totalVolume += ele.volume;
       truckManifested++;
     }
