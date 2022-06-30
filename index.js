@@ -3,7 +3,7 @@ import { renderGeneralRates } from "./src/generalRatesW.js";
 import { drawChart, testChart, addtest, updateChart } from "./src/grafica.js";
 import { setSideLine } from "./src/sideLine.js";
 import { creaTabla } from "./src/tablas.js";
-import { getRanking, renderWindowsData } from "./src/widonsData.js";
+import { exportFullData, getRanking, renderWindowsData } from "./src/widonsData.js";
 export let CONFIG;
 CONFIG = getConfig();
 
@@ -243,6 +243,7 @@ function giveStyle() {
 }
 
 function setupEventsListener() {
+  document.querySelector(".exportFullData").addEventListener("click",(e=>{exportFullData()}))
   document.getElementById("site").addEventListener("focusout", (e) => {
     CONFIG.site = e.target.textContent.toUpperCase().trim();
     document.getElementById("site").textContent = CONFIG.site;

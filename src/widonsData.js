@@ -1,7 +1,7 @@
 import { CONFIG } from "../index.js";
 import { getAPIdata, getDwell } from "./api.js";
 import { renderGeneralRates } from "./generalRatesW.js";
-import { setSideLine } from "./sideLine.js";
+import { setSideLine, testCSV } from "./sideLine.js";
 
 export async function renderWindowsData() {
   const petBody = {
@@ -234,7 +234,7 @@ async function compliencePorCent() {
   return { total, pass, failed, nulas, txC,time };
 }
 
-export async function getRanking() {
+export async function getRanking(ExportToCSV=false) {
   let actualSite = CONFIG.site; // guarda el site actual para reinstaurarlo despues del ranking
   const sites2 = [
     "DQB2",
@@ -264,6 +264,7 @@ export async function getRanking() {
   ];
   let sites = [
     [
+      "DCT7",
       "DQB5",
       "DQV1",
       "DQV6",
@@ -279,7 +280,6 @@ export async function getRanking() {
       "DIC1",
       "DQZ5",
       "DQB9",
-      "DCT7",
       "DQV2",
       "DQB4",
       "DQV3",
@@ -302,6 +302,7 @@ export async function getRanking() {
       "DCZ4",
     ],
     [
+      "Barcelona7",
       "AMPL San Sebastian",
       "Valencia",
       "Valencia",
@@ -317,7 +318,6 @@ export async function getRanking() {
       "DS Murcia",
       "Sevilla5",
       "Santander",
-      "Barcelona7",
       "Alicante",
       "Pampiona",
       "Denia",
@@ -343,7 +343,9 @@ export async function getRanking() {
 
   console.log(sites);
   //  sites = rankingFrancia
-  const ranking = [];
+   const ranking = [];
+  // sites=mini
+
   const todosLosDatos=[]
   for (let i = 0; i < sites[0].length; i++) {
     CONFIG.site = sites[0][i];
@@ -356,6 +358,9 @@ export async function getRanking() {
   }
   console.log("listado todas")
   console.log(todosLosDatos)
+  if(ExportToCSV==="yes")
+  {testCSV(todosLosDatos)}
+  
   console.log(ranking.sort((a, b) => b.percentil - a.percentil));
 
   renderRanking(ranking);
@@ -391,7 +396,16 @@ function renderRanking(ranking) {
     // container.appendChild(siteInRanking);
   }
 }
+const mini=[[
+  "DLP5",
+  "DND2",
+  "DWP2"],["Villeneuve",
+  "Moult",
+  "Nice2",
 
+  ]
+
+]
 const rankingFrancia = [
   [
     "DLP5",
@@ -558,3 +572,8 @@ const rankingItalia = [
     "Origgio",
   ],
 ];
+export function exportFullData() {
+  getRanking("yes")
+
+  
+}

@@ -141,7 +141,14 @@ function parseCsv(data, fieldSep, newLine) {
   //console.log('- grid: ' + JSON.stringify(grid, null, ' '));
   return grid;
 }
-function testCSV(array) {
+export function testCSV(array) {
+  let redu=[]
+  let redu2=[]
+  array.forEach((ele)=>redu=redu.concat(ele))
+  console.log(redu)
+  redu.forEach((ele)=>redu2=redu2.concat(ele))
+  console.log(redu2)
+  array=redu2
   var universalBOM = "\uFEFF";
 
   //headers from object
@@ -156,7 +163,8 @@ function testCSV(array) {
     let fila = Object.values(row);
     for (let col of fila) {
       if (col) {
-        col = col.normalize("NFD");
+        console.log(col)
+        // col = col.normalize("NFD");
       }
       csv += col + ",";
     }
@@ -170,7 +178,7 @@ function testCSV(array) {
   var url = window.URL.createObjectURL(myBlob);
   var anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "demo.csv";
+  anchor.download = "fulldata.csv";
 
   // (E) "FORCE DOWNLOAD"
   // NOTE: MAY NOT ALWAYS WORK DUE TO BROWSER SECURITY
