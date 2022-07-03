@@ -183,7 +183,7 @@ console.log(array)
   var url = window.URL.createObjectURL(myBlob);
   var anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "fulldata.csv";
+  anchor.download = `fulldata${CONFIG.site}.csv`;
 
   // (E) "FORCE DOWNLOAD"
   // NOTE: MAY NOT ALWAYS WORK DUE TO BROWSER SECURITY

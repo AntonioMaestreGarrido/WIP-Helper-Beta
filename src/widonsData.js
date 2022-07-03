@@ -27,11 +27,12 @@ export async function renderWindowsData() {
   sessionStorage.setItem("windows", JSON.stringify(data.flowPVAData[15][2]));
   const sccData = data.flowPVAData[15];
   console.log(sccData);
-  renderGeneralRates(data.flowPVAData[15][2]);
+  await renderGeneralRates(data.flowPVAData[15][2]);
   const sideLined = await setSideLine();
-  let volume = document
-    .querySelector(".volumeExpected")
-    .textContent.match(/(\d+)/);
+  // let volume = document
+  //   .querySelector(".volumeExpected")
+  //   .textContent.match(/(\d+)/);
+  let volume= await getVolume()
   let volumenTotal = 1;
   let sideTotal=1
   //let sideMatch=document.querySelector(".sideline").textContent.match(/(\d+)/)
@@ -51,7 +52,8 @@ export async function renderWindowsData() {
   const sortation = data.flowPVAData[15][2];
   console.log(sortation.dataPointList.length);
   let v = sortation.dataPointList.length;
-  let lowSortThreshold = (parseInt(volumenTotal) / v / 15) * 2;
+//  let lowSortThreshold = (parseInt(volumenTotal) / v / 15) * 2;
+let lowSortThreshold = (parseInt(volume) / v / 15) * 2;
   let totalAts = 0;
   let windowContainer = document.querySelector("#windows15Data");
   windowContainer.innerHTML = "";
@@ -590,4 +592,35 @@ export function exportFullData() {
   getRanking("yes")
 
   
+}
+async function getVolume(site=CONFIG.site){
+  const petBody = {
+    resourcePath: "/ivs/getPackageMetric",
+    httpMethod: "post",
+    processName: "induct",
+    requestBody: {
+      nodeId: site,
+      filters: { Cycle: ["CYCLE_1"] },
+      groupBy: "Node",
+      metricList: [
+        "CURRENT_CYCLE_RECEIVED",
+        "OTHER_CYCLE_RECEIVED",
+        "PENDING_DEPART_FROM_UPSTREAM",
+        "PENDING_DEPART_FROM_UPSTREAM_UNPLANNED",
+        "IN_TRANSIT_FROM_UPSTREAM",
+        "IN_TRANSIT_FROM_UPSTREAM_UNPLANNED",
+        "PENDING_INDUCT",
+        "PENDING_INDUCT_UNPLANNED",
+        "PENDING_RE_INDUCT",
+        "PENDING_RE_INDUCT_UNPLANNED",
+        "INDUCTED_AT_STATION",
+        "PLANNED_MANIFESTED",
+        "SIDELINE",
+      ],
+    },
+  };
+  const data = await getAPIdata(petBody);
+  console.log(data);
+  console.log(data.groupedPackageMetrics.PLANNED_MANIFESTED[CONFIG.site]);
+return data.groupedPackageMetrics.PLANNED_MANIFESTED[CONFIG.site]
 }

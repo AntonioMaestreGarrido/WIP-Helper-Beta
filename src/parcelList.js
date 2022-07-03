@@ -139,7 +139,10 @@ function flatSearchData(obj) {
     let valu = obj[key];
     if (typeof valu == "string" && valu.includes(",")) {
      
-      obj[key] = valu.replace(",", " ");
+      obj[key] = valu.replaceAll(",", " ");
+    }
+    if(name=="lastUpdatedTime"){
+      console.log(obj[key] )// to
     }
     if (obj[key]!= null && name.toLocaleLowerCase().includes("date") ) {
     
@@ -151,9 +154,9 @@ function flatSearchData(obj) {
       obj[key] != null &&
       name !== "stationTimeZone"
     ) {
-     
+    
       let t = 1;
-      obj[key] = new Date(obj[key]).toLocaleString().replace(",", "");
+      obj[key] = new Date(obj[key]).toLocaleString().replaceAll(",", "");
       
     }
   }
@@ -163,7 +166,7 @@ function flatSearchData(obj) {
   obj.packagepackageWidthInCm = obj.packageWidth.value;
   let a = new Date();
   let t = a.toLocaleString();
-  t = t.replace(",", "");
+  t = t.replaceAll(",", "");
   
 
   delete obj.additionalAttributes;
