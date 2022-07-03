@@ -142,9 +142,9 @@ function flatSearchData(obj) {
       obj[key] = valu.replaceAll(",", " ");
     }
     if(name=="lastUpdatedTime"){
-      console.log(obj[key] )// to
+      console.log(obj[key] )// to fixed
     }
-    if (obj[key]!= null && name.toLocaleLowerCase().includes("date") ) {
+    if (obj[key]!= null && name.toLocaleLowerCase().includes("date")&& name !=="lastUpdatedTime" ) {
     
       obj[key] = new Date(obj[key]).toLocaleDateString();
     }

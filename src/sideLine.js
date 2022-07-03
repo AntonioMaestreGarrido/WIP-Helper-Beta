@@ -24,20 +24,7 @@ export async function setSideLine() {
   console.log("*")
  return list
 }
-async function   getAts(){
-  let atsTotal=0
- const dwell= await getDwell("DQA2")
-console.log(dwell)
-let atsDwell
-dwell.forEach((ele)=>{if(ele.packageStatus==="Inducted"){atsDwell=ele.columnToViewDataMap}})
 
-for (const key in atsDwell) {
-  // console.log(key)
-  // console.log(held[key].value)
-  atsTotal = atsTotal + parseInt(atsDwell[key].value);
-}
-console.log(atsTotal)
-}
 export async function getSideOut(site) {
   let sideTotal = 0;
   const dwell = await getDwell(site);
@@ -92,18 +79,7 @@ function parseDate(data) {
   return windowSidelined(sideListArray)
 }
 
-function createContainer() {
-  const containerSideline = document.createElement("div");
-  const textSideline = document.createElement("textarea");
-  textSideline.setAttribute("type", "text");
-  const boton = document.createElement("button");
-  boton.textContent = "Send";
-  boton.addEventListener("click", (e) => parseText(textSideline.value));
 
-  document.querySelector("body").appendChild(containerSideline);
-  containerSideline.appendChild(textSideline);
-  containerSideline.appendChild(boton);
-}
 function parseCsv(data, fieldSep, newLine) {
   fieldSep = fieldSep || ",";
   newLine = newLine || "\n";
@@ -159,6 +135,11 @@ console.log(array)
   //headers from object
   var csv = "\uFEFF";
   let fila = Object.keys(array[0]);
+  // get truck index
+  let truckIndex=fila.indexOf("Truck")
+  console.log(fila)
+  fila.splice(truckIndex,1)
+  fila.unshift("Truck")
   for (let col of fila) {
     csv += col + ",";
   }
@@ -166,6 +147,9 @@ console.log(array)
   // rest of data
   for (let row of array) {
     let fila = Object.values(row);
+    let truck=fila[truckIndex]
+    fila.splice(truckIndex,1)
+    fila.unshift(truck)
     for (let col of fila) {
       if (col) {
         // console.log(col)
