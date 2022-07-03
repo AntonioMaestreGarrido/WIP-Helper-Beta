@@ -1,9 +1,13 @@
 import { CONFIG } from "../index.js";
 import { getAPIdata, getDwell } from "./api.js";
 import { renderGeneralRates } from "./generalRatesW.js";
+import { parcelList } from "./parcelList.js";
 import { setSideLine, testCSV } from "./sideLine.js";
 
 export async function renderWindowsData() {
+ 
+
+
   const petBody = {
     resourcePath: "/ivs/getpvadata",
     httpMethod: "post",
@@ -29,6 +33,7 @@ export async function renderWindowsData() {
     .querySelector(".volumeExpected")
     .textContent.match(/(\d+)/);
   let volumenTotal = 1;
+  let sideTotal=1
   //let sideMatch=document.querySelector(".sideline").textContent.match(/(\d+)/)
   let side = 0;
   // if(sideMatch){
@@ -67,6 +72,7 @@ export async function renderWindowsData() {
   let complience = await compliencePorCent();
   let inductAcumulu = 0;
   let stowAcumulu = 0;
+  let sideAcumulu=0
   const totalData=[]
   let partialData= induction.dataPointList.map((ele, index) => {
     
@@ -82,6 +88,7 @@ export async function renderWindowsData() {
     inductAcumulu = inductAcumulu + ele.metricValue ;
     // inductAcumulu = inductAcumulu + ele.metricValue - sideLined[index];
     stowAcumulu = stowAcumulu + sort;
+    sideAcumulu=sideAcumulu+sideLined[index] 
     totalAts = totalAts + (ele.metricValue - sideLined[index] - sort); // experimentando con el side
     if (sort > lowSortThreshold) {
       //totalAts=totalAts-sort
@@ -171,6 +178,11 @@ export async function renderWindowsData() {
         class: "windowData",
         content: `Sidelined=${sideLined[index]}`,
       });
+      let sideAcumuluInWindow = createNewEle({
+        type: "div",
+        class: "windowData",
+        content: `Total Side=${sideAcumulu}`,
+      });
       let buffer = createNewEle({
         type: "div",
         class: "windowData",
@@ -187,6 +199,8 @@ export async function renderWindowsData() {
       partialWindow.appendChild(inductAcuData);
       partialWindow.appendChild(sortAcuData);
       partialWindow.appendChild(sideInWindow);
+      partialWindow.appendChild(sideAcumuluInWindow);
+      
       partialWindow.appendChild(AtsData);
       partialWindow.appendChild(buffer);
       partialWindow.appendChild(flowRate);

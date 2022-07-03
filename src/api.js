@@ -128,16 +128,50 @@ export async function getDwell(site) {
   return data.metricResult;
 }
 
-export async function getTruckList() {
+export async function getTruckList(site = CONFIG.site) {
   try {
     const camiones = await getAPIdata({
       resourcePath: "/ivs/getNodeLineHaulList",
       httpMethod: "post",
       processName: "induct",
-      requestBody: { nodeId: CONFIG.site, groupBy: "" },
+      requestBody: { nodeId: site, groupBy: "" },
     });
     return camiones.lineHauls;
   } catch (error) {
     return [];
   }
+}
+export async function getParcelList(VRID) {
+  // VRID="115PTH7BC"
+  let data = await fetch(`http://localhost:3000/getParcelList/${VRID}`)
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    })
+    .catch((error) => console.log("No se ha podido acceder a SSC", error));
+
+  return data;
+}
+//fullDataSearch
+export async function getFullData(array) {
+
+let fl=JSON.stringify(array)
+let body={w:33,lista:array}
+ 
+  let scc = await fetch("http://localhost:3000/fullDataSearch", {
+     headers:{'Accept': 'application/json',
+     'Content-Type': 'application/json'},
+    method: "POST",
+    body: JSON.stringify(body)
+    // body: JSON.stringify(body),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("succes");
+      let scc = data;
+
+      return scc;
+    })
+    .catch((error) => []);
+  return scc;
 }

@@ -142,13 +142,18 @@ function parseCsv(data, fieldSep, newLine) {
   return grid;
 }
 export function testCSV(array) {
+console.log(array)
+ 
+  
+
   let redu=[]
   let redu2=[]
   array.forEach((ele)=>redu=redu.concat(ele))
-  console.log(redu)
+  //console.log(redu)
   redu.forEach((ele)=>redu2=redu2.concat(ele))
-  console.log(redu2)
+ // console.log(redu2)
   array=redu2
+ 
   var universalBOM = "\uFEFF";
 
   //headers from object
@@ -163,7 +168,7 @@ export function testCSV(array) {
     let fila = Object.values(row);
     for (let col of fila) {
       if (col) {
-        console.log(col)
+        // console.log(col)
         // col = col.normalize("NFD");
       }
       csv += col + ",";

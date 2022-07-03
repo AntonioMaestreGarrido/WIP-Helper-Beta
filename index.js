@@ -1,6 +1,7 @@
 import { getAPIdata, getAPIgetdata } from "./src/api.js";
 import { renderGeneralRates } from "./src/generalRatesW.js";
 import { drawChart, testChart, addtest, updateChart } from "./src/grafica.js";
+import { parcelList } from "./src/parcelList.js";
 import { setSideLine } from "./src/sideLine.js";
 import { creaTabla } from "./src/tablas.js";
 import { exportFullData, getRanking, renderWindowsData } from "./src/widonsData.js";
@@ -243,7 +244,7 @@ function giveStyle() {
 }
 
 function setupEventsListener() {
-  document.querySelector(".exportFullData").addEventListener("click",(e=>{exportFullData()}))
+  document.querySelector(".exportFullData").addEventListener("click",(e=>{parcelList()}))
   document.getElementById("site").addEventListener("focusout", (e) => {
     CONFIG.site = e.target.textContent.toUpperCase().trim();
     document.getElementById("site").textContent = CONFIG.site;
@@ -372,9 +373,9 @@ async function getInductersRates() {
     creaTabla("inductersRates", activeInducters, [
       "alias",
       "PPH",
-      "hourSpent",
+      // "hourSpent",
       "location",
-      "packageHandled",
+      // "packageHandled",
     ]);
     inductContainer.style.display = "block";
   }
