@@ -119,6 +119,9 @@ async function truckList() {
   return { totalVolume, trucksNumber, truckManifested, truckArrived };
 }
 export async function checkArrived() {
+  let a=new Date()
+  
+  console.log("llamada a truckarrive",a.toTimeString())
   const trucks = await  getTruckList();
   if (sessionStorage.getItem("trucksList") == null) {
     sessionStorage.setItem("trucksList", JSON.stringify(trucks));

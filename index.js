@@ -496,6 +496,7 @@ function handleStartButton() {
   }
 }
 function calculateNextWindowCall() {
+  
   renderWindowsData();
   const interval = 15;
   let ahora = new Date();
