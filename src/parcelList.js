@@ -49,18 +49,33 @@ export async function parcelList(site = CONFIG.site) {
 }
 async function fullSearchData(array) {
   let a = new Date();
+  let error=0
+  let retry = 0
+  
+   
+  
+ 
   const bigData = [];
-  const arrayPartido = chunk(array, 1000);
+  const arrayPartido = chunk(array,1000);
 
-  console.log("strt");
-  console.log(arrayPartido)
   await Promise.all(
     arrayPartido[0].map(async (ele,indexPartido) => {
+      let a
+      do {
+        error=0
+        retry ++ 
       console.log("pidiendo ");
-      let a = await  getFullData(ele);//await
-       console.log(arrayPartido[1][indexPartido][5])
-       a.packageSummaryList.forEach((e,index)=>{e.Truck=arrayPartido[1][indexPartido][index]})
+       a = await  getFullData(ele);//await
+       //console.log(arrayPartido[1][indexPartido][5])
+       console.log(a)
+       try {
+         
+         a.packageSummaryList.forEach((e,index)=>{e.Truck=arrayPartido[1][indexPartido][index]})
+       } catch (e) {
+         error =error +1        }
       console.log("recibiendo");
+      console.log(`numero de errores igual a ${error}`)
+    } while (error != 0 );
 
       bigData.push(a.packageSummaryList);
       return true;
@@ -68,7 +83,8 @@ async function fullSearchData(array) {
   );
   console.log("end");
   let b = new Date();
-  console.log("tiempo de fullsearch" + (b - a) / 1000);
+  console.log("tiempo de full search" + (b - a) / 1000);
+
   return bigData;
 }
 
@@ -141,9 +157,7 @@ function flatSearchData(obj) {
      
       obj[key] = valu.replaceAll(",", " ");
     }
-    if(name=="lastUpdatedTime"){
-      console.log(obj[key] )// to fixed
-    }
+  
     if (obj[key]!= null && name.toLocaleLowerCase().includes("date")&& name !=="lastUpdatedTime" ) {
     
       obj[key] = new Date(obj[key]).toLocaleDateString();

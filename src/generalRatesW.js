@@ -1,6 +1,8 @@
 import { CONFIG } from "../index.js";
 import { getAPIdata, getTruckList } from "./api.js";
+import { sendNotification } from "./noti.js";
 import { getSideIn, getSideOut } from "./sideLine.js";
+import { renderWindowsData } from "./widonsData.js";
 
 export async function renderGeneralRates(sccData) {
   let sideIN = await getSideIn(CONFIG.site);
@@ -49,8 +51,10 @@ export async function renderGeneralRates(sccData) {
   document.querySelector(".volumeExpected").textContent = `Volume Expected: ${
     data.groupedPackageMetrics.PLANNED_MANIFESTED[CONFIG.site]
   }`;
-  
-  document.querySelector(".volumeManifested span").textContent = ` ${truckData.totalVolume} (${truckData.truckManifested}/${truckData.trucksNumber})`;
+
+  document.querySelector(
+    ".volumeManifested span"
+  ).textContent = ` ${truckData.totalVolume} (${truckData.truckManifested}/${truckData.trucksNumber})`;
   document.querySelector(".inductHourlyRate").textContent = `Induct Hr: ${(
     data.groupedPackageMetrics.PLANNED_MANIFESTED[CONFIG.site] / worktime
   ).toFixed(0)}`;
@@ -73,27 +77,73 @@ export async function renderGeneralRates(sccData) {
   ).padStart(2, "0")}:${String(end.getMinutes()).padEnd(2, "0")}`;
   document.querySelector("span.dataSideLineIn").textContent = sideIN;
   document.querySelector("span.dataSideLineOut").textContent = sideOut;
+  document.querySelector("#truckArrived").textContent = truckData.truckArrived;
+  let a = document.querySelector("#truckTotal");
+  document.querySelector("#truckTotal").textContent = truckData.trucksNumber;
   //document.querySelector(".sideline").textContent=`Sideline: ${data.groupedPackageMetrics.SIDELINE[CONFIG.site]}`
 }
 
 async function truckList() {
-  const truckList = await getTruckList();
+  let truckList = await getTruckList();
+  truckList = truckList.filter(
+    (ele) =>
+      !ele.origin.startsWith("OQ") &&
+      !ele.origin.startsWith("OC") &&
+      ele.origin.length < 5
+  );
+  checkArrived(truckList);
   let totalVolume = 0;
   let trucksNumber = 0;
   let truckManifested = 0;
-  let truckArrived=0
-  console.log(truckList)
+  let truckArrived = 0;
+  console.log(truckList);
   truckList.forEach((ele) => {
-    console.log(ele.origin.length)
-    if(!ele.origin.startsWith("OQ")&& !ele.origin.startsWith("OC")&& ele.origin.length <5){
-    trucksNumber++;
-    console.log(ele)
-    if (!isNaN(ele.volume) && !ele.volume==0) {
-      totalVolume += ele.volume;
-      truckManifested++;
-    }}
-    if(ele.lineHaulStatus==="ARRIVED"){truckArrived++}
+    console.log(ele.origin.length);
+    if (
+      !ele.origin.startsWith("OQ") &&
+      !ele.origin.startsWith("OC") &&
+      ele.origin.length < 5
+    ) {
+      trucksNumber++;
+      console.log(ele);
+      if (!isNaN(ele.volume) && !ele.volume == 0) {
+        totalVolume += ele.volume;
+        truckManifested++;
+      }
+    }
+    if (ele.lineHaulStatus === "ARRIVED") {
+      truckArrived++;
+    }
   });
 
-  return { totalVolume, trucksNumber, truckManifested,truckArrived };
+  return { totalVolume, trucksNumber, truckManifested, truckArrived };
+}
+export async function checkArrived() {
+  const trucks = await  getTruckList();
+  if (sessionStorage.getItem("trucksList") == null) {
+    sessionStorage.setItem("trucksList", JSON.stringify(trucks));
+    return;
+  }
+  const oldList = JSON.parse(sessionStorage.getItem("trucksList")).filter(
+    (ele) => ele.lineHaulStatus !== "ARRIVED"
+  );
+  console.log(oldList);
+  if (oldList.length == 0) {
+    return;
+  }
+  console.table(trucks)
+  
+  console.table(oldList)
+  oldList.forEach((ele) => {
+    if (
+      
+      trucks.filter((truck) => truck.lineHaulId === ele.lineHaulId)[0]
+        .lineHaulStatus === "ARRIVED"
+    ) {
+      console.log(ele.lineHaulId + "llegado");
+      sendNotification(ele)
+      renderWindowsData()
+      sessionStorage.setItem("trucksList", JSON.stringify(trucks));
+    }
+  });
 }

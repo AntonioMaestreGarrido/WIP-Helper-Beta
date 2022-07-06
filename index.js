@@ -1,10 +1,14 @@
 import { getAPIdata, getAPIgetdata } from "./src/api.js";
-import { renderGeneralRates } from "./src/generalRatesW.js";
+import { checkArrived, renderGeneralRates } from "./src/generalRatesW.js";
 import { drawChart, testChart, addtest, updateChart } from "./src/grafica.js";
 import { parcelList } from "./src/parcelList.js";
 import { setSideLine } from "./src/sideLine.js";
 import { creaTabla } from "./src/tablas.js";
-import { exportFullData, getRanking, renderWindowsData } from "./src/widonsData.js";
+import {
+  exportFullData,
+  getRanking,
+  renderWindowsData,
+} from "./src/widonsData.js";
 export let CONFIG;
 CONFIG = getConfig();
 
@@ -26,7 +30,6 @@ function isScreenLockSupported() {
 }
 getScreenLock();
 async function getScreenLock() {
- 
   if (isScreenLockSupported()) {
     let screenLock;
     try {
@@ -103,7 +106,7 @@ async function apitest() {
       let datos = data;
       // console.log(datos);
       calculate(datos);
-      sessionStorage.setItem("lastWindowData",JSON.stringify(datos))
+      sessionStorage.setItem("lastWindowData", JSON.stringify(datos));
     })
     .catch((error) => console.log("No se encuentra el servidor", error));
 }
@@ -206,14 +209,17 @@ async function filltable() {
   document.getElementById("MinutesToCheck").innerText = MinutesToCheck;
 
   document.getElementById("ATsAtTime").innerText = ATsAtTime;
+  let buffer = Math.round((ATsAct * 60) / StowRateAct);
+  if (isNaN(buffer)) {
+    buffer = 0;
+  }
+  let bufferAtCheck = Math.round((ATsAtTime * 60) / StowRateAct);
+  if (isNaN(bufferAtCheck)) {
+    bufferAtCheck = 0;
+  }
+  document.getElementById("buffer").textContent = buffer + "m";
 
-  document.getElementById("buffer")
-  .textContent = Math.round(ATsAct*60/StowRateAct)+"m";
-  // if(document.getElementById("buffer")
-  // .textContent === Math.round(ATsAct*60/StowRateAct)>30||document.getElementById("buffer")
-  // .textContent === Math.round(ATsAct*60/StowRateAct)<15){document.getElementById("buffer").classList.add("failed")}else{document.getElementById("buffer").classList.add("passed")}
-  document.getElementById("bufferAtCheck").textContent =  Math.round(ATsAtTime*60/StowRateAct)+"m";
-  //document.getElementById("ATsAtTimeCustom").innerText = ATsAtTime;
+  document.getElementById("bufferAtCheck").textContent = bufferAtCheck + "m";
 
   giveStyle();
 }
@@ -244,8 +250,13 @@ function giveStyle() {
 }
 
 function setupEventsListener() {
-  document.querySelector(".exportFullData").addEventListener("click",(e=>{parcelList()}))
+  document.querySelector(".exportFullData").addEventListener("click", (e) => {
+    parcelList();
+  });
   document.getElementById("site").addEventListener("focusout", (e) => {
+    if (e.target.textContent.toUpperCase().trim() !== CONFIG.site) {
+      sessionStorage.removeItem("trucksList");
+    }
     CONFIG.site = e.target.textContent.toUpperCase().trim();
     document.getElementById("site").textContent = CONFIG.site;
     saveConfig();
@@ -254,7 +265,9 @@ function setupEventsListener() {
   });
   document
     .querySelector("#checkBoxSide")
-    .addEventListener("click", (e) => calculate(JSON.parse(sessionStorage.getItem ("lastWindowData"))));
+    .addEventListener("click", (e) =>
+      calculate(JSON.parse(sessionStorage.getItem("lastWindowData")))
+    );
   document
     .querySelector(".getSide")
     .addEventListener("click", () => setSideLine());
@@ -474,10 +487,12 @@ function handleStartButton() {
     apitest();
     calculateNextWindowCall();
 
-    handleStartButton.intervalID = setInterval(apitest, 10000);
+    handleStartButton.intervalID = setInterval(apitest, 15000);
+    handleStartButton.intervalTruck=setInterval(checkArrived, 1*60*1000);
   } else {
     startButton.textContent = "Off";
     clearInterval(handleStartButton.intervalID);
+    clearInterval(handleStartButton.intervalTruck)
   }
 }
 function calculateNextWindowCall() {
