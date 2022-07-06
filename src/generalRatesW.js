@@ -80,6 +80,7 @@ export async function renderGeneralRates(sccData) {
   document.querySelector("#truckArrived").textContent = truckData.truckArrived;
   let a = document.querySelector("#truckTotal");
   document.querySelector("#truckTotal").textContent = truckData.trucksNumber;
+  document.querySelector("#volumeArrived").textContent=truckData.volumeArrived
   //document.querySelector(".sideline").textContent=`Sideline: ${data.groupedPackageMetrics.SIDELINE[CONFIG.site]}`
 }
 
@@ -93,9 +94,11 @@ async function truckList() {
   );
   checkArrived(truckList);
   let totalVolume = 0;
+  let volumeArrived=0
   let trucksNumber = 0;
   let truckManifested = 0;
   let truckArrived = 0;
+  
   console.log(truckList);
   truckList.forEach((ele) => {
     console.log(ele.origin.length);
@@ -109,14 +112,17 @@ async function truckList() {
       if (!isNaN(ele.volume) && !ele.volume == 0) {
         totalVolume += ele.volume;
         truckManifested++;
+        if(ele.lineHaulStatus==="ARRIVED"){
+        volumeArrived +=ele.volume}
       }
+
     }
     if (ele.lineHaulStatus === "ARRIVED") {
       truckArrived++;
     }
   });
 
-  return { totalVolume, trucksNumber, truckManifested, truckArrived };
+  return { totalVolume,volumeArrived, trucksNumber, truckManifested, truckArrived };
 }
 export async function checkArrived() {
   let a=new Date()
@@ -136,7 +142,7 @@ export async function checkArrived() {
   }
   console.table(trucks)
   
-  console.table(oldList)
+  console.log("listado",oldList)
   oldList.forEach((ele) => {
     if (
       
