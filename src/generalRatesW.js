@@ -138,7 +138,7 @@ export async function checkArrived() {
   const trucks = await getTruckList();
   console.log(
     trucks
-      .filter((ele) => ele.lineHaulStatus !== "ARRIVED")
+      .filter((ele) => ele.lineHaulStatus !== "ARRIVED" && ele.lineHaulTime.gpsTime !==null)
       .sort((a, b) => {
         let t1 = new Date(a.lineHaulTime.gpsTime);
         let t2 = new Date(b.lineHaulTime.gpsTime);
@@ -147,7 +147,7 @@ export async function checkArrived() {
         } else {
           return -1;
         }
-      })
+      })[0]
   );
   if (sessionStorage.getItem("trucksList") == null) {
     sessionStorage.setItem("trucksList", JSON.stringify(trucks));
