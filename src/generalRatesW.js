@@ -102,14 +102,14 @@ async function truckList() {
 
   console.log(truckList);
   truckList.forEach((ele) => {
-    console.log(ele.origin.length);
+    
     if (
       !ele.origin.startsWith("OQ") &&
       !ele.origin.startsWith("OC") &&
       ele.origin.length < 5
     ) {
       trucksNumber++;
-      console.log(ele);
+      
       if (!isNaN(ele.volume) && !ele.volume == 0) {
         totalVolume += ele.volume;
         truckManifested++;
@@ -137,13 +137,17 @@ export async function checkArrived() {
   console.log("llamada a truckarrive", a.toTimeString());
   const trucks = await getTruckList();
   console.log(
-    trucks.sort((a, b) => {
-      let t1=new Date(a.lineHaulTime.gpsTime)
-      let t2=new Date(b.lineHaulTime.gpsTime)
-      if ( t1>t2) {
-        return 1;
-      }else{return -1}
-    })
+    trucks
+      .filter((ele) => ele.lineHaulStatus !== "ARRIVED")
+      .sort((a, b) => {
+        let t1 = new Date(a.lineHaulTime.gpsTime);
+        let t2 = new Date(b.lineHaulTime.gpsTime);
+        if (t1 > t2) {
+          return 1;
+        } else {
+          return -1;
+        }
+      })
   );
   if (sessionStorage.getItem("trucksList") == null) {
     sessionStorage.setItem("trucksList", JSON.stringify(trucks));
